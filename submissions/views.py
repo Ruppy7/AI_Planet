@@ -1,21 +1,23 @@
 from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.password_validation import validate_password
-from rest_framework import viewsets
+from django.contrib.auth import authenticate, login, logout
 
-from .serializers import UserSerializer
+from .serializers import HackathonSerializer
 from .forms import CustomUserCreationForm
 from rest_framework import status
-from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
+from rest_framework.generics import ListCreateAPIView
 
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from .permissions import CanCreateHackathon
 from django.contrib.auth.decorators import login_required
+
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User, Group
+from .models import Hackathon
 
 # Create your views here.
 
@@ -60,10 +62,9 @@ def signup(request):
 def test_token(request):
     return Response(f"Passed for {request.user.email}")
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def logout(request):
-    token = Token.objects.filter(user=request.user).delete()
+@login_required(login_url='/login')
+def logoutUser(request):
+    logout(request)
     return redirect('index')
 
 def index(request):
@@ -72,3 +73,15 @@ def index(request):
 @login_required(login_url='/login')
 def home(request):
     return render(request, "home.html")
+
+class HackathonListCreateView(ListCreateAPIView):
+    queryset = Hackathon.objects.all()
+    serializer_class = HackathonSerializer
+    permission_classes = [IsAuthenticated]
+        
+    def post(self, request, *args, **kwargs):
+        if not CanCreateHackathon().has_permission(request, self):
+            return Response({"message":"You do not have permissions to perform this request"})
+        else:
+            self.serializer_class(request.data)
+            return 

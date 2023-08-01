@@ -8,6 +8,7 @@ class CustomUser(AbstractUser):
         ('list_hackathon', 'List_hackathon'),
     )
     user_role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    
     groups = models.ManyToManyField('auth.Group', related_name='customuser_set', blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name='customuser_set', blank=True)
 
@@ -26,3 +27,6 @@ class Hackathon(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
     reward = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return self.title
