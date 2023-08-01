@@ -1,1 +1,37 @@
-db.sqlite3
+# General
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+*.pyc
+*.swp
+*.swo
+*.log
+
+# Virtual environment
+venv/
+env/
+*.env
+
+# Media files (uploaded user content)
+media/
+
+# Compiled translations
+locale/
+
+# Secret keys and sensitive settings
+*.secret_key
+*.env
+*.settings
+
+# Database credentials
+*.db
+
+# IDE settings
+.vscode/
+.idea/
+*.pydevproject
+*.pyc
+*.pyo
+*.DS_Store

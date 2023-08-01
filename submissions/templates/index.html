@@ -86,6 +86,9 @@
       <button type="submit">Login</button>
       Do not have an account?
       <a href="/signup">Sign up</a>
+      {% if error %}
+        <div style="color: red; margin-top: 10px">{{ error }}</div>
+      {% endif %}
     </form>
   </body>
 </html>

@@ -3,11 +3,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
+from rest_framework import viewsets
 
 from .serializers import UserSerializer
+from .forms import CustomUserCreationForm
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 
 from rest_framework.decorators import authentication_classes, permission_classes
@@ -28,36 +30,29 @@ def userLogin(request):
             login(request, user)
             return redirect("home")
         else:
-            return Response({"Error" : "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            return render(request, 'index.html', {"error":"Bad Request/Invalid Credentials"})
     elif request.method == "GET":
         return render(request, 'index.html')
 
 @api_view(['GET', 'POST'])
 def signup(request):
     if request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data.get('username')
-            password = serializer.validated_data.get('password')
-            email = serializer.validated_data.get('email')
-            if User.objects.filter(username=username).exists():
-                error = "Username is already taken."
-            elif User.objects.filter(email=email).exists():
-                error = "Email is already in use!"
-            else:
-                try:
-                    validate_password(password)
-                    user = User.objects.create_user(username=username, password=password, email=email)
-                    token, created = Token.objects.get_or_create(user=user)
-                    login(request, user)
-                    return redirect("home")
-                except Exception as e:
-                    error = str(e)
-        else:
-            error = "Invalid data. Please check the form fields."
-        return render(request, 'signup.html', {'error': error})
+        form = CustomUserCreationForm(request.data)
+        if form.is_valid():
+            user = form.save()
+            user_role = form.cleaned_data.get('user_role')
+            if user_role == 'enrol_hackathon':
+                enrol_hackathon_group = Group.objects.get(name='Enrol_hackathon')
+                user.groups.add(enrol_hackathon_group)
+            elif user_role == 'list_hackathon':
+                list_hackathon_group = Group.objects.get(name='List_hackathon')
+                user.groups.add(list_hackathon_group)
+            return redirect("home")
+        error = form.errors
+        return render(request, 'signup.html', {"error": error})
     elif request.method == 'GET':
-        return render(request, 'signup.html')
+        form = CustomUserCreationForm()
+        return render(request, 'signup.html', {'form': form})
 
 @api_view(['GET'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
@@ -74,6 +69,6 @@ def logout(request):
 def index(request):
     return render(request, "index.html")
 
-@login_required
+@login_required(login_url='/login')
 def home(request):
     return render(request, "home.html")
