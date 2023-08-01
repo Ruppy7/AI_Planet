@@ -1,24 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HackNet - Login</title>
-</head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f1f1f1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
 
-<body>
+      #login-form {
+        max-width: 300px;
+        padding: 80px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+      }
+
+      #login-form div {
+        margin-bottom: 20px; /* Increased margin between elements */
+      }
+
+      #login-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 18px; /* Increased font size */
+        padding: 5px 0;
+      }
+
+      #login-form input[type="text"],
+      #login-form input[type="password"] {
+        width: 100%;
+        padding: 15px; /* Increased padding for inputs */
+        font-size: 18px; /* Increased font size for inputs */
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      #login-form button[type="submit"] {
+        width: 100%;
+        padding: 15px; /* Increased padding for the button */
+        font-size: 18px; /* Increased font size for the button */
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      #login-form button[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+
+  <body>
     <form id="login-form" method="post" action="{% url 'login' %}">
-        {% csrf_token %}
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" placeholder="Enter your username" />
-        </div>
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" />
-        </div>
-        <button type="submit">Login</button>
+      {% csrf_token %}
+      <div>
+        <label for="username">Username:</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Enter your username"
+        />
+      </div>
+      <div>
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+        />
+      </div>
+      <button type="submit">Login</button>
+      Do not have an account?
+      <a href="/signup">Sign up</a>
     </form>
-</body>
+  </body>
 </html>

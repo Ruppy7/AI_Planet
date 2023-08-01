@@ -4,13 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style> 
+        #user-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+          }
+    </style>
 </head>
 <body>
-    Welcome to the home page!
-    <div id="user-info"></div>
+    <div id="user-info">
+    Welcome to the home page "{{ user.username }}"!
     <form method="POST" action="/logout">
         {% csrf_token %}
         <button type="submit"> Logout </button>
     </form>
+    </div>
 </body>
 </html>

@@ -1,17 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HackNet - Signup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #signup-form {
+            max-width: 300px;
+            padding: 100px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        #signup-form div {
+            margin-bottom: 20px;
+            /* Increased margin between elements */
+        }
+
+        #signup-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 18px;
+            /* Increased font size */
+            padding: 5px 0;
+        }
+
+        #signup-form input[type="text"],
+        #signup-form input[type="password"],
+        #signup-form input[type="email"] {
+            width: 100%;
+            padding: 15px;
+            /* Increased padding for inputs */
+            font-size: 18px;
+            /* Increased font size for inputs */
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        #signup-form button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            /* Increased padding for the button */
+            font-size: 18px;
+            /* Increased font size for the button */
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        #signup-form button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
+
 <body>
-    <form method="POST">
+    <form id="signup-form" method="post" action="/signup">
         {% csrf_token %}
-        <input type="text" id="username" placeholder="Username">
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-        
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" />
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" />
+        </div>
+        <div>
+            <label for="email">Email: </label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" />
+        </div>
+        <button type="submit">Signup</button>
+        Already have an account?
+        <a href="/login">Login</a>
+        {% if error %}
+        <div style="color: red; margin-top: 10px">{{ error }}</div>
+        {% endif %}
     </form>
 </body>
+
 </html>
