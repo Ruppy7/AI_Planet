@@ -3,21 +3,21 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 
-from .serializers import HackathonSerializer
+from .serializers import HackathonSerializer, SubmissionSerializer, EnrollmentSerializer
 from .forms import CustomUserCreationForm
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, CreateAPIView
+from rest_framework.views import APIView
 
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .permissions import CanCreateHackathon
+from .permissions import CanCreateHackathon, CanEnrolHackathon
 from django.contrib.auth.decorators import login_required
 
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User, Group
-from .models import Hackathon
+from .models import Hackathon, Submission, Enrollment
 
 # Create your views here.
 
@@ -83,5 +83,31 @@ class HackathonListCreateView(ListCreateAPIView):
         if not CanCreateHackathon().has_permission(request, self):
             return Response({"message":"You do not have permissions to perform this request"})
         else:
-            self.serializer_class(request.data)
-            return 
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
+
+class HackathonRegistrationView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated, CanEnrolHackathon]
+    serializer_class = EnrollmentSerializer
+    
+    def get_queryset(self):
+        return Enrollment.objects.filter(user = self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        hackathon_id = request.data.get('hackathon')
+        try:
+            hackathon = Hackathon.objects.get(pk = hackathon_id)
+            existing_enrollment = Enrollment.objects.filter(user=request.user, hackathon=hackathon).first()
+            if existing_enrollment:
+                return Response({"message": "You are already registered for this hackathon."}, status=status.HTTP_400_BAD_REQUEST)
+            enrollment = Enrollment.objects.create(user=request.user, hackathon=hackathon)
+            return Response({"message":"Registration Successful!"}, status=status.HTTP_201_CREATED)
+        except Hackathon.DoesNotExist:
+            return Response({"message":"Hackathon not found."}, status=status.HTTP_404_BAD_REQUEST)
+
+class SubmissionView(APIView):
+    permission_classes = [IsAuthenticated]        

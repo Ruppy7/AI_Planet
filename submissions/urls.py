@@ -8,5 +8,6 @@ urlpatterns = [
     path('logout', views.logoutUser, name='logout'),
     path('', views.index, name="index"),
     path('home', views.home, name="home"),
-    path('hackathons', views.HackathonListCreateView.as_view(), name='hacklist')
+    path('hackathons', views.HackathonListCreateView.as_view(), name='hacklist'),
+    path('hkregister', views.HackathonRegistrationView.as_view(), name='hkregister')
 ]
