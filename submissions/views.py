@@ -2,13 +2,15 @@ from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
+from rest_framework.renderers import JSONRenderer
 
-from .serializers import HackathonSerializer, SubmissionSerializer, EnrollmentSerializer
+from .serializers import HackathonSerializer, ImageSubmissionSerializer, LinkSubmissionSerializer, FileSubmissionSerializer, EnrollmentSerializer
 from .forms import CustomUserCreationForm
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView, CreateAPIView
+from rest_framework.generics import ListCreateAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.views import APIView
+from rest_framework import serializers
 
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
@@ -89,6 +91,13 @@ class HackathonListCreateView(ListCreateAPIView):
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         
+class HackathonDetailView(RetrieveAPIView):
+    serializer_class = HackathonSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        hackathon_id = self.kwargs['pk']
+        return Hackathon.objects.filter(pk=hackathon_id)
 
 class HackathonRegistrationView(ListCreateAPIView):
     permission_classes = [IsAuthenticated, CanEnrolHackathon]
@@ -101,7 +110,7 @@ class HackathonRegistrationView(ListCreateAPIView):
         hackathon_id = request.data.get('hackathon')
         try:
             hackathon = Hackathon.objects.get(pk = hackathon_id)
-            existing_enrollment = Enrollment.objects.filter(user=request.user, hackathon=hackathon).first()
+            existing_enrollment = Enrollment.objects.filter(user=request.user, hackathon=hackathon).exists()
             if existing_enrollment:
                 return Response({"message": "You are already registered for this hackathon."}, status=status.HTTP_400_BAD_REQUEST)
             enrollment = Enrollment.objects.create(user=request.user, hackathon=hackathon)
@@ -109,5 +118,44 @@ class HackathonRegistrationView(ListCreateAPIView):
         except Hackathon.DoesNotExist:
             return Response({"message":"Hackathon not found."}, status=status.HTTP_404_BAD_REQUEST)
 
-class SubmissionView(APIView):
-    permission_classes = [IsAuthenticated]        
+class SubmissionView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated, CanEnrolHackathon]
+    
+    def get_queryset(self):
+        return Submission.objects.filter(user=self.request.user)
+    
+    def get_serializer(self, *args, **kwargs):
+        hackathon_id = self.kwargs.get('pk')
+        hackathon = get_object_or_404(Hackathon, pk=hackathon_id)
+        submission_type = hackathon.submission_type
+        
+        if submission_type == 'image':
+            return ImageSubmissionSerializer(*args, **kwargs)
+        elif submission_type == 'file':
+            return FileSubmissionSerializer(*args, **kwargs)
+        elif submission_type == 'link':
+            return LinkSubmissionSerializer(*args, **kwargs)
+        
+        return super().get_serializer(*args, **kwargs)
+            
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        hackathon_id = self.kwargs.get('pk')
+        hackathon = get_object_or_404(Hackathon, pk=hackathon_id)
+        existing_submission = Submission.objects.filter(user=user, hackathon=hackathon).exists()
+        enrolled_in = Enrollment.objects.filter(user=user, hackathon=hackathon).exists()
+        if existing_submission:
+            print('brother!!!!!!')
+            raise serializers.ValidationError("You have already submitted your response for this hackathon")
+        elif not enrolled_in:
+            raise serializers.ValidationError("You are not enrolled in the hackathon to submit your response!")
+        
+        serializer.save(user=user, hackathon=hackathon)
+        
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({"message": "You have successfully submitted your response for this hackathon!"}, status=status.HTTP_201_CREATED, headers=headers)
