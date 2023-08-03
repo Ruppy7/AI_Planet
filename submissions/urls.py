@@ -4,7 +4,6 @@ from . import views
 urlpatterns = [
     path('login', views.userLogin, name="login"),
     path('signup', views.signup, name='signup'),
-    path('test', views.test_token),
     path('logout', views.logoutUser, name='logout'),
     path('', views.index, name="index"),
     path('home', views.home, name="home"),
@@ -12,4 +11,6 @@ urlpatterns = [
     path('hackathons/<int:pk>', views.HackathonDetailView.as_view(), name='singlehk'),
     path('hkregister', views.HackathonRegistrationView.as_view(), name='hkregister'),
     path('hackathons/<int:pk>/submit', views.SubmissionView.as_view(), name='hksubmit'),
+    path('submissions', views.SubmissionListView.as_view(), name="submissions"),
+
 ]

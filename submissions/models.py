@@ -1,6 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 # Create your models here.
 
 class CustomUser(AbstractUser):
@@ -29,6 +30,12 @@ class Hackathon(models.Model):
     end = models.DateTimeField()
     reward = models.DecimalField(max_digits=10, decimal_places=2)
     
+    def clean(self):
+        if self.start <= timezone.now():
+            raise models.ValidationError("Invalid start date")
+        if self.end <= self.start:
+            raise models.ValidationError("Invalid end date")
+    
     def __str__(self):
         return self.title
 
@@ -41,7 +48,6 @@ class Enrollment(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.hackathon.title}"
 
-
 class Submission(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     hackathon = models.ForeignKey(Hackathon, on_delete=models.CASCADE)
@@ -53,6 +59,8 @@ class Submission(models.Model):
     submission_image = models.ImageField(upload_to='submissions/images/', blank=True, null=True)
     submission_link = models.URLField(blank=True)
 
+
+    # Submission validation on db side.
     def save(self, *args, **kwargs):
         hackathon_submission_type = self.hackathon.submission_type
 

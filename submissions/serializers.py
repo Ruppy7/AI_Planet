@@ -18,6 +18,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         model = Enrollment
         fields = '__all__'
         
+#Separate serializers for each type of submission.
 class ImageSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
