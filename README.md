@@ -1,4 +1,3 @@
-#AI_Planet_Project
 
 ## Requirements
 
